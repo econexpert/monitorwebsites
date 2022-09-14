@@ -12,7 +12,7 @@ Database entries:
 
 ![](https://github.com/econexpert/monitorwebsites/blob/main/images/testme-database.jpg)
 
-2. *monitorweb01.py*
+2. *monitorweb02.py*
 
 If detects changes, this version saves copy of HTML on MongoDb and makes an archive of earlier versions.   
 
