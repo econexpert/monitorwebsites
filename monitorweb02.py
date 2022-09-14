@@ -64,7 +64,7 @@ def getlistofwebsites():
         try:
             if post['webpagelink'] not in websitenamearray:
                 websitenamearray.append(post['webpagelink'])
-                newestentry = max(post["copy"], key = lambda x: x["date"]) # working with oldest entry
+                newestentry = max(post["copy"], key = lambda x: x["date"]) # working with the newest entry
                 websitesizearray.append(newestentry['size'])
                 websitedatearray.append(newestentry["date"])
                 websitecopies.append(len(post["copy"]))
