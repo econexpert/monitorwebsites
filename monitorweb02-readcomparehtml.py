@@ -2,6 +2,7 @@ from async_timeout import timeout
 from pymongo import MongoClient
 from sys import exit
 import bz2
+import datetime
 
 def gettitle(pagehtml,first,second):
     title = pagehtml[pagehtml.find(first) + len(first): pagehtml.find(second, pagehtml.find(first) + 1)]
@@ -26,6 +27,8 @@ def removeitems(body):
 
 def getwebsitecopy(webpagelink, ordernumber):   #ordernumber in reverse 
     loadeddata = dbupdate[collectionnameinmongodb].find({"webpagelink":webpagelink}, { "copy": { "$slice": [-ordernumber,1] } }) 
+    if loadeddata[0]["copy"] == []: #return if no data
+        return False,False
     web = bz2.decompress(loadeddata[0]["copy"][0]["content"])
     date = loadeddata[0]["copy"][0]["date"]
     return web, date
@@ -40,7 +43,11 @@ def getlistofwebsites():
         try:
             if post['webpagelink'] not in websitenamearray:
                 websitenamearray.append(post['webpagelink'])
-                newestentry = max(post["copy"], key = lambda x: x["date"]) #get the newest entry
+                if post["copy"] != []:
+                    newestentry = max(post["copy"], key = lambda x: x["date"])
+                else: 
+                    print("some error at", post['webpagelink'])
+                    newestentry = {'size':"","date":"","copy":""}
                 websitesizearray.append(newestentry['size'])
                 websitedatearray.append(newestentry["date"])
                 websitecopies.append(len(post["copy"]))
@@ -49,17 +56,17 @@ def getlistofwebsites():
 
 def cleanhtmlpage(body):
     body = gettitle(body,"<body>","</body>")  # work only with code enclosed by body tag
-    removehtmlelements = (("<script","</script>"),("<div class=\"","\">"),("<div class=\"","\">"),("<div class=\'","\">"),
+    removeelements = (("<script","</script>"),("<div class=\"","\">"),("<div class=\"","\">"),("<div class=\'","\">"),
     ("<input","/>"),("<!-- END","-->"),("<!-- BEGIN","-->"),("<button>","</button>"),("<span",">"))#,("<path",">"))  
-    for x  in removehtmlelements:
-        body = removecodes(body, *x)   #  body = removecodes(body,"<first tag>","</second tag>")
+    for x in removeelements:
+        body = removecodes(body, *x)   #  body = removecodes(body1,"<first tag>","</second tag>")
     lines = body.split("\n")   # split html into lines 
     lines = [x for x in lines if x.strip()]  # remove empty spaces
     return lines
 
 def main():
     global dbupdate, collectionnameinmongodb   
-    datebasenameinmongodb = "webpages01"  # change datebase name here if needed 
+    datebasenameinmongodb = "webpages01"  # change datebase name here if needed   
     collectionnameinmongodb = "webpages01"  # change collection name here if needed 
     try:
 #  mongoDb connection string, to be kept secret, replace new_user_name_for_python and new_user_password_for_python with database user login and password, white list your IP address to MongoDb
@@ -72,14 +79,18 @@ def main():
         return
 
     numberofwebsites = len(listofwebsites)
-    print("currently in the database" , str(numberofwebsites),"websites: ")
+    print("currently in the \"", collectionnameinmongodb, "\" collection are " , str(numberofwebsites)," websites ", "\x1b[92m","(green ones are updated today UTC)","\x1b[39m", ":", sep ="")
+    datenow = datetime.datetime.utcnow()
     for count, webl in enumerate(listofwebsites):
-        print('\033[1;33m', count + 1, '\033[0;0m',". " , webl," (" ,listofwebsitecopies[count],")", end = " ",sep = "")
+        print('\033[1;33m', count + 1, '\033[0;0m',". " ,("\x1b[92m" if datenow.day == listofwebsitedates[count].day else "\x1b[39m" ), webl, "\x1b[39m"," (" ,listofwebsitecopies[count],")", end = " ",sep = "")
     userinput = input(f"\nNumber for website to analyze (or # before number to remove last entry): ") 
     if (str(userinput).isnumeric() == True):
         k = int(userinput)
         print("going to read saved website...", listofwebsites[k-1])
         output1, date1 = getwebsitecopy(listofwebsites[k-1],1)
+        if output1 == False:
+            print("last array empty. exiting...")
+            return
         output2, date2 = getwebsitecopy(listofwebsites[k-1],2)
 
         output1 = str(output1).encode().decode('unicode_escape').encode('latin1').decode() 
