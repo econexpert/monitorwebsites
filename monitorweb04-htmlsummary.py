@@ -89,7 +89,7 @@ def main(howmanydays):
     try:
 #  mongoDb connection string, to be kept secret, replace new_user_name_for_python and new_user_password_for_python with database user login and password, white list your IP address to MongoDb
 #  more on https://www.mongodb.com/docs/atlas/tutorial/connect-to-your-cluster/
-        client = MongoClient("mongodb+srv://long_as_cluster_user:password_as_cluster_user@server.mongodb.net")  # MongoDb connection string     
+        client = MongoClient("mongodb+srv://login_as_cluster_user:password_as_cluster_user@server.mongodb.net")  # MongoDb connection string     
         dbupdate = client[datebasenameinmongodb]
         listofwebsites, listofwebsitesizes, listofwebsitedates,listofwebsitecopies, secondnamearray = getlistofwebsites()
     except:
