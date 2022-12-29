@@ -31,3 +31,13 @@ This file uses database entries created by monitorweb02.py and compare last save
 Still work in progress. Not working on scripted and encoded pages. 
 
 ![](https://github.com/econexpert/monitorwebsites/blob/main/images/monitor02readweb.jpg)
+
+## 4. Prepare html file or email summary about updates 
+File name: *monitorweb04-summary.py*
+
+This file can be used to email daily summaries about updates or just save html file with information. Most convinient way is to upload to a free public notebook service for daily run. Number of days to summarize can be set main function. If number of days set as 0 days, menu is displayed to input number of days.   
+
+Example of e-mail summary is attached below.     
+
+![](https://github.com/econexpert/monitorwebsites/blob/main/images/monitorweb04-summary.jpg)
+
