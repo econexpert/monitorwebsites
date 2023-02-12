@@ -2,22 +2,26 @@
 
 Check for website updates and store data in MongoDb database using Python script.
 
-Need MongoDb account with read/write user login access and pymongo package installed locally to run the script. 
+Need MongoDb account with read/write user login access and pymongo package installed locally to run the script.         
 
 ## 1. Check for website changes and record size in database
 File name: *monitorweb.py*
 
+
+This version saves size of website in database if it detects changes. Can be used to alert user about updates.
 ![](https://github.com/econexpert/monitorwebsites/blob/main/images/monitorchanges.jpg)
 
 Database entries: 
 
 ![](https://github.com/econexpert/monitorwebsites/blob/main/images/testme-database.jpg)
 
+More updated version follows.    
+
 ## 2. Check for websites changes and save HTML copy in database
 
 File name: *monitorweb02.py*
 
-If detects changes, this version saves copy of HTML on MongoDb and makes an archive of earlier versions.   
+This version saves copy of HTML on MongoDb if it detects changes. All earlier versions of websites are stored in the database.   
 
 Need MongoDb account with read/write user login access and pymongo package installed locally to run the script. 
 
