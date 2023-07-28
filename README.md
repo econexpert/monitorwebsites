@@ -43,7 +43,7 @@ Need MongoDb account with read/write user login access and pymongo package insta
 ![](https://github.com/econexpert/monitorwebsites/blob/main/images/monitorchanges02.jpg)
 
 ## 3. Retrieve saved copies and analyze for changes
-File name: *monitorweb02-readcomperehtml.py*
+File name: *monitorweb03-read.py*
 
 This file uses database entries created by monitorweb02.py and compare last saved html file with the previous one. Shows added and removed lines. 
 
