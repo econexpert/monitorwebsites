@@ -34,7 +34,9 @@ More updated version follows.
 
 File name: *monitorweb02.py*
 
-This version saves copy of HTML on MongoDb if it detects changes. All earlier versions of websites are stored in the database.   
+This script saves HTML file copy of the website on MongoDb database, if it detects changes. All earlier versions of websites are stored in the database.  
+
+Database settings and saved in the file settings.py
 
 Need MongoDb account with read/write user login access and pymongo package installed locally to run the script. 
 
