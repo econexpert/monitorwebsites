@@ -1,9 +1,9 @@
-from async_timeout import timeout
 from pymongo import MongoClient
 import datetime
 import urllib3
 from sys import exit
 import bz2
+import settings
 
 class getwebsite:
     def __init__(self,websitename):
@@ -14,12 +14,14 @@ class getwebsite:
         headers = {'user-agent':"Mozilla/5.0 (Windows NT 6.3; rv:36.0) .."}
         print('now getting: ' + websitename)
         try:
-            response = http.request('GET', websitename, timeout = 1.5, headers = headers) 
+            response = http.request('GET', websitename, timeout = 2.5, headers = headers) # car reduce timeout to 1.5 sec, some websites work best with longer
         except urllib3.exceptions.MaxRetryError as e:
             print("error getting this website: ", '\033[1;31m', websitename, '\033[0;0m')
+            print("error code is:", e)
             return 0
         except urllib3.exceptions.ReadTimeoutError as e:
             print("error getting this website: ", '\033[1;31m', websitename, '\033[0;0m')
+            print("error code:", e)
             return 0
         self.webpagehtml = response.data
         return len(response.data)
@@ -34,10 +36,13 @@ class getwebsite:
         return title
 
 def updatenewdata(webpagelink,size, compressed, maxcopiestokeep = 20):
-    first = {'webpagelink': webpagelink}
-    second = {'$push':{'copy': {'$each': [{"remarks":"none", "size": size, "date": datenow, "content": compressed}], '$slice': -maxcopiestokeep}}}
-    updateresult = dbupdate[collectionnameinmongodb].update_one(first, second)
-    print("updates made: " + str(updateresult.modified_count))
+    try:
+        first = {'webpagelink': webpagelink}
+        second = {'$push':{'copy': {'$each': [{"remarks":"none", "size": size, "date": datenow, "content": compressed}], '$slice': -maxcopiestokeep}}}
+        updateresult = dbupdate[collectionnameinmongodb].update_one(first, second)
+        print("updates made: " + str(updateresult.modified_count))
+    except:
+        print("some error database not updated")
 
 def deleteolddata(webpagelink,maxcopiestokeep = 20):
     first = {'webpagelink': webpagelink}
@@ -46,7 +51,7 @@ def deleteolddata(webpagelink,maxcopiestokeep = 20):
     updateresult = dbupdate[collectionnameinmongodb].update_one(first, second)
     print("deletions made: " + str(updateresult.modified_count))
 
-def adddatabase(websitename):
+def adddatabase(websitename):  # add new version to database
     nevv = getwebsite(websitename)
     size = int(nevv.getwebsitesize(websitename))
     if size > 0:
@@ -78,7 +83,6 @@ def getlistofwebsites():
                     newestentry['size'] = ""
                     newestentry['date'] = ""
                     newestentry['copy'] = ""
-
                 websitesizearray.append(newestentry['size'])
                 websitedatearray.append(newestentry["date"])
                 websitecopies.append(len(post["copy"]))
@@ -88,16 +92,15 @@ def getlistofwebsites():
 def main(updateallandquit = False):
     global datenow, dbupdate, collectionnameinmongodb   
     tolerance = 48  # tolerance in Kb
-    copiestokeep = 30   # number of copies to keep of websites, oldest are deleted
-    datebasenameinmongodb = "testme-database"  # change datebase name here if needed   
-    collectionnameinmongodb = "testme-collection"  # change collection name here if needed 
+    copiestokeep = 30   # number of website versions to keep, old ones are deleted. WILL DELETE older versions without warning
+    datebasenameinmongodb = settings.DATABASE  # datebase name here
+    collectionnameinmongodb = settings.COLLECTION  # collection name here
     navv = getwebsite("")
     datenow = datetime.datetime.utcnow()
-
     try:
 #  mongoDb connection string, to be kept secret, replace new_user_name_for_python and new_user_password_for_python with database user login and password, white list your IP address to MongoDb
 #  more on https://www.mongodb.com/docs/atlas/tutorial/connect-to-your-cluster/
-        client = MongoClient("mongodb+srv://new_user_name_for_python:new_user_password_for_python@better_copy_string_from_atlas.mongodb.net/")       
+        client = MongoClient(settings.URI)       
         dbupdate = client[datebasenameinmongodb]
         listofwebsites, listofwebsitesizes, listofwebsitedates,listofwebsitecopies = getlistofwebsites()
     except:
@@ -114,7 +117,7 @@ def main(updateallandquit = False):
         userinput = ""
         print("updating all and quiting")
     else:
-        userinput = input("website link for addition, number for deletion, blank for update of database: ") 
+        userinput = input("Enter website link for addition or \033[1;31mnumber for deletion\033[0;0m or blank for update of the whole database: ") 
     if (str(userinput).isnumeric() == True):
             try: 
                 deletewebsitefromdatabase(listofwebsites[int(userinput)-1])
@@ -138,9 +141,9 @@ def main(updateallandquit = False):
             listofwebsitedates[k] = datetime.datetime.utcnow() 
         if (size > 0 and (abs(listofwebsitesizes[k] - size) > tolerance)):   
             print("Updating now:",'\033[1;33m', navv.getwebtitle(), '\033[0;0m')
-            print('\033[1;32m' + listofwebsites[k] +'\033[0;0m' + " updated from " + listofwebsitedates[k].strftime("%Y-%m-%d %H:%M") + " with current date: " + datenow.strftime("%Y-%m-%d %H:%M") + " current size " + str(size) + " from old size " + str(listofwebsitesizes[k]))
+            print('\033[1;32m' + listofwebsites[k] +'\033[0;0m' + " updated from  with current date: " + datenow.strftime("%Y-%m-%d %H:%M") + " current size " + str(size) + " from old size " + str(listofwebsitesizes[k]))
             updatenewdata(listofwebsites[k],size, navv.getcompressedweb(), copiestokeep)
         else:
-            print('website not updated. Current size: ' + str(size) + ' old size: ' + str(listofwebsitesizes[k]))
+            print('Not updated. Current size: ' + str(size) + ' old size: ' + str(listofwebsitesizes[k]) + ' last update on: ' + listofwebsitedates[k].strftime("%Y-%m-%d %H:%M"))
 if __name__ == "__main__":
-    main(updateallandquit = True)  # this one to true if running as scheduled job in cloud, false to desplay menu: to add new urls or delete
+    main(updateallandquit = False)  # set True when running as a scheduled job in the cloud, False to display a user menu
