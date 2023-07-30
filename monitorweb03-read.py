@@ -1,3 +1,4 @@
+
 from pymongo import MongoClient
 from sys import exit
 import bz2
@@ -24,6 +25,24 @@ def removeitems(body):
             line = line.replace(x,"")
         newbody.append(line)
     return newbody
+
+def colorsubstring(input_string, getlistofsubstrings):   # color output and get key stats
+    keystatistics = []
+    for substring in getlistofsubstrings:
+        i = 0
+        keycounter = 0
+        colored_output = ""
+        while i < len(input_string):
+            if input_string[i:i + len(substring)].lower() == substring.lower():
+                colored_output += "\033[91m" + input_string[i:i + len(substring)] + "\033[0m"
+                i += len(substring)
+                keycounter += 1
+            else:
+                colored_output += input_string[i]
+                i += 1
+        input_string = colored_output
+        if keycounter > 0: keystatistics.append([substring,keycounter])
+    return colored_output, keystatistics
 
 def getwebsitecopy(webpagelink, ordernumber):   #ordernumber in reverse 
     web, date = [],[] #resets
@@ -86,19 +105,20 @@ def cleanhtmlpage(body):
 
 def main():
     global dbupdate, collectionnameinmongodb   
-    datebasenameinmongodb = settings.DATABASE  # datebase name here 
-    collectionnameinmongodb = settings.COLLECTION  # collection name 
+    datebasenameinmongodb = settings.DATABASE  # change datebase name here if needed   webpages01, webpages
+    collectionnameinmongodb = settings.COLLECTION  # change collection name here if needed webpages01, allwebpages allpages
     try:
 #  MongoDb connection string, get by creating seperate use access login in MongoDband white listing ip address where script is run
         client = MongoClient(settings.URI) # saved in settings.py file      
         dbupdate = client[datebasenameinmongodb]
+        collectionsize = str(round(dbupdate.command("collstats", collectionnameinmongodb)["storageSize"]/(1024*1024),2)) + " Mb"
         listofwebsites, listofwebsitesizes, listofwebsitedates,listofwebsitecopies = getlistofwebsites()
     except:
         print('error accessing the databse...')
         return
 
     numberofwebsites = len(listofwebsites)
-    print("currently in the \"", collectionnameinmongodb, "\" collection are " , str(numberofwebsites)," websites ", "\x1b[92m","(green ones are updated today UTC)","\x1b[39m", ":", sep ="")
+    print("currently in the \"", collectionnameinmongodb, "\" collection are " , str(numberofwebsites)," websites in ", str(collectionsize)," \x1b[92m","(green ones are updated today UTC)","\x1b[39m", ":", sep ="")
     datenow = datetime.datetime.utcnow()
     for count, webl in enumerate(listofwebsites):
         print('\033[1;33m', count + 1, '\033[0;0m',". " ,("\x1b[92m" if datenow.day == listofwebsitedates[count].day else "\x1b[39m" ), webl, "\x1b[39m"," (" ,listofwebsitecopies[count],")", end = " ",sep = "")
@@ -114,12 +134,15 @@ def main():
         if (str(versions).isnumeric() == True):
             versions = int(versions) 
         lines1, lines2 = [],[]
-        output1, date1 = getwebsitecopy(listofwebsites[k-1],versions)  
+        output1, date1 = getwebsitecopy(listofwebsites[k-1],versions)   # change number of websites one to get
         if output1 == False:
             print("last array empty. exiting...")
             return
         for i in range(len(date1)):
-            output = str(output1[i]).encode().decode('unicode_escape').encode('latin1').decode()  # utf-8
+            try:
+                output = str(output1[i]).encode().decode('unicode_escape').encode('latin1').decode()  # utf-8, latin1
+            except: 
+                output = str(output1[i]).encode().decode('unicode_escape') # in case Latin encoding fails
             lines1 = cleanhtmlpage(output)
             print("Title is:",'\033[1;33m', gettitle(output,"<title","</title>"), '\033[0;0m')
             print("line count now:", len(lines1), " date: ", date1[i].strftime("%Y-%m-%d %H:%M"))
@@ -129,8 +152,18 @@ def main():
             print("-"*27," ADDED ","-"*27)
             added = list(set(lines1) - set(lines2))
             added = removeitems(added)
+            keywordlist = []  # keyword list stats
             for linebyline in added:
-                print(linebyline.strip())
+                colored_output, stats = colorsubstring(linebyline.strip(), settings.KEYWORDS.split(","))
+                keywordlist += stats
+                print(colored_output)
+            sums_dict = {}  # Calculate the sums for keywords
+            for word, number in keywordlist:
+                if word in sums_dict:
+                    sums_dict[word] += number
+                else:
+                    sums_dict[word] = number
+            if sums_dict: print("\033[44mkeyword mentions:\033[0;0m", ', '.join(f"{word}:{count}" for word, count in sums_dict.items()))
             print("-"*26," REMOVED ","-"*26)
             removed = list(set(lines2) - set(lines1))
             removed = removeitems(removed)
