@@ -63,3 +63,4 @@ Example of e-mail summary is attached below.
 
 ![](https://github.com/econexpert/monitorwebsites/blob/main/images/monitorweb04-summary.jpg)
 
+To send email need such edit such informtion as server SMTP server address, login name and login password.
