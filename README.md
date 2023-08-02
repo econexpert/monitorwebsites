@@ -6,7 +6,7 @@ Need MongoDb account with read/write user login access and pymongo package insta
 
 Here are the steps involved in using these scripts:
 
-1. Download and save the .py files (go to the script and click on 'Download raw file') and settings.py file.
+1. Download and save the .py files (go to the script and click on 'Download raw file') and settings.py file in the same directory.
 2. Create a MongoDB account with a strong and secure password (visit https://www.mongodb.com/).
 3. Create MongoDB users and obtain the connection string (refer to the video tutorial).
 
@@ -14,9 +14,9 @@ https://github.com/econexpert/monitorwebsites/assets/7473991/9cf6641e-152c-4ea3-
 
 4. Update the connection string inside the settings.py file.
 5. Update keywords, these will be outlined in red among added lines
-6. Install pymongo pckage: ```pip3 install pymongo``` or ```python -m pip install pymongo```
+6. Install pymongo pckage: ```pip3 install pymongo``` or ```python -m pip install pymongo```  OR download requirements.txt and run ```pip install -r requirements.txt``` (Most files only require PyMongo and Urllib3, Pandas is only used to run the last summary file: monitorweb04-htmlsummary.py)
 7. Run the scripts in the terminal. For example: ```python3 monitorweb02.py``` to update database or ```python3 monitorweb03-read.py``` to read from database
- 
+
 
 ## 1. Check for website changes and record size in database
 File name: *monitorweb.py*
