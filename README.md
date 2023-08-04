@@ -34,7 +34,9 @@ More updated version follows.
 ## 2. Check for websites changes and save HTML copy in database
 
 File name: *monitorweb02.py*     
-```wget https://github.com/econexpert/monitorwebsites/raw/main/monitorweb02.py https://github.com/econexpert/monitorwebsites/raw/main/settings.py```
+```
+wget https://github.com/econexpert/monitorwebsites/raw/main/monitorweb02.py https://github.com/econexpert/monitorwebsites/raw/main/settings.py
+```
 
 This script saves HTML file copy of the website on MongoDb database, if it detects changes. All earlier versions of websites are stored in the database.  
 
@@ -47,6 +49,10 @@ Need MongoDb account with read/write user login access and pymongo package insta
 ## 3. Retrieve saved copies and analyze for changes
 File name: *monitorweb03-read.py*
 
+```
+wget https://github.com/econexpert/monitorwebsites/raw/main/monitorweb03-read.py https://github.com/econexpert/monitorwebsites/raw/main/settings.py
+```
+
 This file uses database entries created by monitorweb02.py and compare last saved html file with the previous one. Shows added and removed lines. 
 
 Searches for keywords specified in the ```settings.py``` file
@@ -56,7 +62,12 @@ Still work in progress. Not working on scripted and encoded pages.
 ![](https://github.com/econexpert/monitorwebsites/blob/main/images/monitor02readweb.jpg)
 
 ## 4. Prepare html file or email summary about updates 
-File name: *monitorweb04-summary.py*
+File name: *monitorweb04-htmlsummary.py*
+
+```
+wget https://github.com/econexpert/monitorwebsites/raw/main/monitorweb04-htmlsummary.py https://github.com/econexpert/monitorwebsites/raw/main/settings.py
+```
+
 
 This file can be used to email daily summaries about updates or just save html file with information. Most convenient way is to upload to a free public notebook service for daily run. Number of days to summarize can be set main function. If number of days set as 0 days, menu is displayed to input number of days.   
 
