@@ -33,7 +33,8 @@ More updated version follows.
 
 ## 2. Check for websites changes and save HTML copy in database
 
-File name: *monitorweb02.py*
+File name: *monitorweb02.py*     
+```wget https://github.com/econexpert/monitorwebsites/raw/main/monitorweb02.py https://github.com/econexpert/monitorwebsites/raw/main/settings.py```
 
 This script saves HTML file copy of the website on MongoDb database, if it detects changes. All earlier versions of websites are stored in the database.  
 
