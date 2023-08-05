@@ -1,4 +1,3 @@
-
 from pymongo import MongoClient
 from sys import exit
 import bz2
@@ -138,6 +137,7 @@ def main():
         if output1 == False:
             print("last array empty. exiting...")
             return
+        keywordtotals = []
         for i in range(len(date1)):
             try:
                 output = str(output1[i]).encode().decode('unicode_escape').encode('latin1').decode()  # utf-8, latin1
@@ -157,19 +157,28 @@ def main():
                 colored_output, stats = colorsubstring(linebyline.strip(), settings.KEYWORDS.split(","))
                 keywordlist += stats
                 print(colored_output)
-            sums_dict = {}  # Calculate the sums for keywords
+            sums_dict = {}  # Calculate the sums of key words for final summary
             for word, number in keywordlist:
                 if word in sums_dict:
                     sums_dict[word] += number
                 else:
                     sums_dict[word] = number
-            if sums_dict: print("\033[44mkeyword mentions:\033[0;0m", ', '.join(f"{word}:{count}" for word, count in sums_dict.items()))
+            if sums_dict: 
+                print("\033[44mkeyword mentions:\033[0;0m", ', '.join(f"{word}:{count}" for word, count in sums_dict.items()))
+                keywordtotals.append([date1[i].strftime("%Y-%m-%d %H:%M"), sums_dict])
             print("-"*26," REMOVED ","-"*26)
             removed = list(set(lines2) - set(lines1))
             removed = removeitems(removed)
             for linebyline in removed:
                 print(linebyline.strip()) 
         print("-"*29," END ","-"*29)
+        if keywordtotals:
+            print("Keyword mentions:")
+            for idx, item in enumerate(keywordtotals):
+                key_value_pairs = ', '.join([f"{k}:{v}" for k, v in sorted(item[1].items())])
+                result_str = f"\033[93m{item[0]}:\033[0m {key_value_pairs}"
+                print(f"{idx+1}. {result_str}")
+
     else: 
         if userinput.startswith("#"):  # this part just removes last entry in the database
             if (str(userinput[1:]).isnumeric() == True):
