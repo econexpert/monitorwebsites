@@ -83,6 +83,7 @@ def getlistofwebsites():
                     newestentry['size'] = ""
                     newestentry['date'] = ""
                     newestentry['copy'] = ""
+
                 websitesizearray.append(newestentry['size'])
                 websitedatearray.append(newestentry["date"])
                 websitecopies.append(len(post["copy"]))
@@ -119,16 +120,18 @@ def main(updateallandquit = False):
     else:
         userinput = input("Enter website link for addition or \033[1;31mnumber for deletion\033[0;0m or blank for update of the whole database: ") 
     if (str(userinput).isnumeric() == True):
-            try: 
+        try: 
+            userconfirmation = input("Type YES to delete \033[31m" + listofwebsites[int(userinput)-1] + "\033[0m: ")
+            if userconfirmation.lower() == "yes" or userconfirmation.lower() == "y":
                 deletewebsitefromdatabase(listofwebsites[int(userinput)-1])
                 print("delete finished")
-            except: 
-                print("couldn't delete website")
-            return
+        except: 
+            print("couldn't delete website")
+        return
     else:
         if (str(userinput) != ""):
-            if str(userinput) not in listofwebsites:
-                adddatabase(userinput)
+            if str(userinput).strip() not in listofwebsites:
+                adddatabase(userinput.strip())
             else:
                 print("trying to add duplicate...")
             return
@@ -146,4 +149,4 @@ def main(updateallandquit = False):
         else:
             print('Not updated. Current size: ' + str(size) + ' old size: ' + str(listofwebsitesizes[k]) + ' last update on: ' + listofwebsitedates[k].strftime("%Y-%m-%d %H:%M"))
 if __name__ == "__main__":
-    main(updateallandquit = False)  # set True when running as a scheduled job in the cloud, False to display a user menu
+    main(updateallandquit = False)  # set True when running as a scheduled job in the cloud (only updates all), False to display a user menu
