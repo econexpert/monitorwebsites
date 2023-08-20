@@ -1,1 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 5px;
+        }
+        label {
+            display: inline-block;
+            width: 150px;
+            margin-bottom: 5px;
+        }
+        form {
+            margin-bottom: 5px;
+        }
 
+        table {
+            border-collapse: collapse;
+            width: 50%;
+            border: 1px solid black;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ddd; 
+            text-align: center;
+        }
+       
+        td {
+          text-align: center;
+          background-color: #ffffff;
+        }
+        .today {
+        background-color: lightgreen;    
+        }
+        
+        button[type="submit"] {
+            background-color:#CC0000;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        button[type="submit"]:hover {
+            background-color:#990000;
+        }
+        .green-box {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: lightgreen;
+            margin-left: 10px;
+        }
+        </style>
+    <title>Website list Flask app</title>
+</head>
+<body>
+    <h1>Website list</h1>
+    Check for updates, add or remove...  
+    <form action="/check" method="post">
+        <button type="submit">Check for updates</button>
+    </form> 
+    <form action="/update" method="post">
+        <label for="field1">Web page to add:</label>
+        <input type="text" id="field1" name="field1" required>
+        <button type="submit">Add webpage</button>
+        </form>
+        
+        <form action="/delete_last" method="post">
+            Delete number 1-{{ totalpages }}: 
+            <input type="text" id="number" name="number" required size="5">
+            <button type="submit">Delete Record</button>
+        </form> <br>
+    <table>
+        <tr>
+            <th>No</th>
+            <th>Website</th>
+            <th >Size</th>
+            <th>Last update time</th>
+            <th>Copies</th>
+
+        </tr>
+        {% for item in data %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ item.webpagelink }}</td>
+            <td>{{ item.webpagesize }}</td>
+            <td class="{% if item.today %}today{% endif %}">
+                {{ item.webpagedate }}</td>
+                <td>{{ item.webpagecopies }}</td>
+            <!-- End of table -->
+        </tr>
+        {% endfor %}
+    </table>
+    <div class="green-box"></div>
+    <span>Websites updated today are colored in green.</span>
+    
+</body>
+</html>
