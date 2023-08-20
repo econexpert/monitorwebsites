@@ -35,39 +35,38 @@ class getwebsite:
         title = pagehtml[pagehtml.find("<title>") + 7: pagehtml.find("</title>")]
         return title
 
-def updatenewdata(webpagelink,size, compressed, maxcopiestokeep = 20):
-    try:
-        first = {'webpagelink': webpagelink}
-        second = {'$push':{'copy': {'$each': [{"remarks":"none", "size": size, "date": datenow, "content": compressed}], '$slice': -maxcopiestokeep}}}
-        updateresult = dbupdate[collectionnameinmongodb].update_one(first, second)
-        print("updates made: " + str(updateresult.modified_count))
-    except:
-        print("some error database not updated")
+    def updatenewdata(self,webpagelink,size, compressed, collection, datenow,maxcopiestokeep = 30):
+        try:
+            first = {'webpagelink': webpagelink}
+            second = {'$push':{'copy': {'$each': [{"remarks":"none", "size": size, "date": datenow, "content": compressed}], '$slice': -maxcopiestokeep}}}
+            updateresult = collection.update_one(first, second)
+            print("updates made: " + str(updateresult.modified_count))
+        except:
+            print("some error database not updated")
 
 def deleteolddata(webpagelink,maxcopiestokeep = 20):
     first = {'webpagelink': webpagelink}
     second = {'$push':{'copy': {'$each':[],'$slice': -maxcopiestokeep }}}
-
     updateresult = dbupdate[collectionnameinmongodb].update_one(first, second)
     print("deletions made: " + str(updateresult.modified_count))
 
-def adddatabase(websitename):  # add new version to database
+def adddatabase(websitename, collection, datenow):  # add new version to database
     nevv = getwebsite(websitename)
     size = int(nevv.getwebsitesize(websitename))
     if size > 0:
         print("website to be updated: " + nevv.getwebtitle() + " and size: " + str(size))
         first = {"webpagelink": websitename, "copy": [{"remarks": "none", "size": size,"date": datenow,"content": nevv.getcompressedweb() }] }
-        x = dbupdate[collectionnameinmongodb].insert_one(first)
+        x = collection.insert_one(first)
         print("insertion made with id: " + str(x.inserted_id))
 
-def deletewebsitefromdatabase(websitelink):
+def deletewebsitefromdatabase(websitelink, collection):
     print("website link to be deleted: " + websitelink)
     first = {"webpagelink": websitelink}
-    x = dbupdate[collectionnameinmongodb].delete_many(first)
+    x = collection.delete_many(first)
     print("deletions made: " + str(x.deleted_count))
 
-def getlistofwebsites():
-    loadeddata = dbupdate[collectionnameinmongodb].find({} ,{'copy.content':0}) # read all data exept for saved webpages
+def getlistofwebsites(collection):
+    loadeddata = collection.find({} ,{'copy.content':0}) # read all data exept for saved webpages
     websitenamearray = []
     websitesizearray = []
     websitedatearray = []
@@ -90,6 +89,23 @@ def getlistofwebsites():
         except: exit("some database error or data mismatch")
     return websitenamearray, websitesizearray,websitedatearray,websitecopies
 
+def updateall(tolerance, copiestokeep,navv,collection):
+    print("going to update whole datebase...")
+    listofwebsites, listofwebsitesizes, listofwebsitedates,listofwebsitecopies = getlistofwebsites(collection)
+    datenow = datetime.datetime.utcnow()
+    for k in range(len(listofwebsites)):
+        print(k+1,". ", "-"*55, sep = "")
+        size = navv.getwebsitesize(listofwebsites[k])   #this gets new size of website
+        if listofwebsitesizes[k] == "":   # checks if database array data is not empty
+            listofwebsitesizes[k] = 0
+            listofwebsitedates[k] = datetime.datetime.utcnow() 
+        if (size > 0 and (abs(listofwebsitesizes[k] - size) > tolerance)):   
+            print("Updating now:",'\033[1;33m', navv.getwebtitle(), '\033[0;0m')
+            print('\033[1;32m' + listofwebsites[k] +'\033[0;0m' + " updated from  with current date: " + datenow.strftime("%Y-%m-%d %H:%M") + " current size " + str(size) + " from old size " + str(listofwebsitesizes[k]))
+            navv.updatenewdata(listofwebsites[k],size, navv.getcompressedweb(), collection, datenow,copiestokeep)
+        else:
+            print('Not updated. Current size: ' + str(size) + ' old size: ' + str(listofwebsitesizes[k]) + ' last update on: ' + listofwebsitedates[k].strftime("%Y-%m-%d %H:%M"))
+
 def main(updateallandquit = False):
     global datenow, dbupdate, collectionnameinmongodb   
     tolerance = 48  # tolerance in Kb
@@ -99,11 +115,9 @@ def main(updateallandquit = False):
     navv = getwebsite("")
     datenow = datetime.datetime.utcnow()
     try:
-#  mongoDb connection string, to be kept secret, replace new_user_name_for_python and new_user_password_for_python with database user login and password, white list your IP address to MongoDb
-#  more on https://www.mongodb.com/docs/atlas/tutorial/connect-to-your-cluster/
         client = MongoClient(settings.URI)       
         dbupdate = client[datebasenameinmongodb]
-        listofwebsites, listofwebsitesizes, listofwebsitedates,listofwebsitecopies = getlistofwebsites()
+        listofwebsites, listofwebsitesizes, listofwebsitedates,listofwebsitecopies = getlistofwebsites(dbupdate[collectionnameinmongodb])
     except:
         print('error accessing the databse...')
         return
@@ -131,22 +145,11 @@ def main(updateallandquit = False):
     else:
         if (str(userinput) != ""):
             if str(userinput).strip() not in listofwebsites:
-                adddatabase(userinput.strip())
+                adddatabase(userinput.strip(), dbupdate[collectionnameinmongodb],datenow)
             else:
                 print("trying to add duplicate...")
             return
-    print("going to update whole datebase...")
-    for k in range(numberofwebsites):
-        print(k+1,". ", "-"*55, sep = "")
-        size = navv.getwebsitesize(listofwebsites[k])   #this gets new size of website
-        if listofwebsitesizes[k] == "":   # checks if database array data is not empty
-            listofwebsitesizes[k] = 0
-            listofwebsitedates[k] = datetime.datetime.utcnow() 
-        if (size > 0 and (abs(listofwebsitesizes[k] - size) > tolerance)):   
-            print("Updating now:",'\033[1;33m', navv.getwebtitle(), '\033[0;0m')
-            print('\033[1;32m' + listofwebsites[k] +'\033[0;0m' + " updated from  with current date: " + datenow.strftime("%Y-%m-%d %H:%M") + " current size " + str(size) + " from old size " + str(listofwebsitesizes[k]))
-            updatenewdata(listofwebsites[k],size, navv.getcompressedweb(), copiestokeep)
-        else:
-            print('Not updated. Current size: ' + str(size) + ' old size: ' + str(listofwebsitesizes[k]) + ' last update on: ' + listofwebsitedates[k].strftime("%Y-%m-%d %H:%M"))
+    updateall(tolerance,copiestokeep,navv, dbupdate[collectionnameinmongodb] )
+
 if __name__ == "__main__":
     main(updateallandquit = False)  # set True when running as a scheduled job in the cloud (only updates all), False to display a user menu
