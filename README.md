@@ -76,3 +76,24 @@ Example of e-mail summary is attached below.
 ![](https://github.com/econexpert/monitorwebsites/blob/main/images/monitorweb04-summary.jpg)
 
 To send email need such edit such informtion as server SMTP server address, login name and login password.
+
+## 5. Organize website link with Flask app 
+File name: *app.py*  *templates/index.html*
+
+Install Flask app
+```
+pip install Flask
+```
+Organize folder like this:
+project_folder/       
+├── app.py        
+└── templates/         
+&ensp;     └── index.html           
+
+app.py should be in the main project folder, and the index.html file should be inside a templates subfolder.
+
+Open a terminal/command prompt, navigate to your project folder, and run the following command:
+```
+python app.py
+```
+App will be accessible at http://127.0.0.1:5000/ 
