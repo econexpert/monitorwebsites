@@ -96,4 +96,7 @@ Open a terminal/command prompt, navigate to your project folder, and run the fol
 ```
 python app.py
 ```
-App will be accessible at http://127.0.0.1:5000/ 
+App will be accessible at http://127.0.0.1:5000/     
+
+![](https://github.com/econexpert/monitorwebsites/blob/main/images/flaskapp.jpg)
+
