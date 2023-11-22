@@ -106,4 +106,10 @@ Demonstration video below:
 
 https://github.com/econexpert/monitorwebsites/assets/7473991/cac933a7-2fa5-41bf-9cf0-d29966980b51
 
+## 6. Web app
+I have furthered this flask app into functional web app, which I am developing currently. 
+You can see my progress here:   https://test.updatecheck.net
+
+
+
 
